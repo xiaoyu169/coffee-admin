@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>咖啡豆推荐管理后台</title>
+</head>
+<body>
+  <h1>咖啡豆推荐管理后台</h1>
+
+  <form id="admin-form">
+    <label for="origin">产地：</label>
+    <input type="text" id="origin" name="origin" required><br><br>
+
+    <label for="bean">豆种：</label>
+    <input type="text" id="bean" name="bean" required><br><br>
+
+    <label for="roast">烘焙程度：</label>
+    <input type="text" id="roast" name="roast" required><br><br>
+
+    <label for="method">器具：</label>
+    <input type="text" id="method" name="method" required><br><br>
+
+    <label for="name">推荐豆名：</label>
+    <input type="text" id="name" name="name" required><br><br>
+
+    <label for="desc">描述：</label>
+    <textarea id="desc" name="desc" required></textarea><br><br>
+
+    <label for="image_url">图片链接：</label>
+    <input type="text" id="image_url" name="image_url" required><br><br>
+
+    <label for="buy_link">购买链接：</label>
+    <input type="text" id="buy_link" name="buy_link" required><br><br>
+
+    <button type="submit">提交更新</button>
+  </form>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    // Supabase 配置
+    const supabaseUrl = 'https://ghwrvkxcoibhixvcprom.supabase.co';  // 替换为你的 Supabase URL
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdod3J2a3hjb2liaGl4dmNwcm9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MzU3OTEsImV4cCI6MjA2NjMxMTc5MX0.mWy8Rn6scdI1XuwNhxarBLT8JwNcaix0FLJdaBO1La4';  // 替换为你的 anon API 密钥
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // 表单提交
+    document.getElementById('admin-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const data = {
+        origin: formData.get('origin'),
+        bean: formData.get('bean'),
+        roast: formData.get('roast'),
+        method: formData.get('method'),
+        name: formData.get('name'),
+        desc: formData.get('desc'),
+        image_url: formData.get('image_url'),
+        buy_link: formData.get('buy_link'),
+      };
+
+      // 提交数据到 Supabase
+      const { data: insertedData, error } = await supabase
+        .from('recommendations')
+        .insert([data]);
+
+      if (error) {
+        console.error('Error inserting data:', error);
+        alert('提交失败');
+      } else {
+        alert('数据提交成功');
+      }
+    });
+  </script>
+</body>
+</html>
