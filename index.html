@@ -8,69 +8,99 @@
 <body>
   <h1>咖啡豆推荐管理后台</h1>
 
-  <form id="admin-form">
-    <label for="origin">产地：</label>
-    <input type="text" id="origin" name="origin" required><br><br>
+  <h3>管理选项</h3>
+  <form id="admin-options-form">
+    <label for="option_type">选项类型：</label>
+    <input type="text" id="option_type" name="option_type" required><br><br>
 
-    <label for="bean">豆种：</label>
-    <input type="text" id="bean" name="bean" required><br><br>
+    <label for="option_value">选项值：</label>
+    <input type="text" id="option_value" name="option_value" required><br><br>
 
-    <label for="roast">烘焙程度：</label>
-    <input type="text" id="roast" name="roast" required><br><br>
-
-    <label for="method">器具：</label>
-    <input type="text" id="method" name="method" required><br><br>
-
-    <label for="name">推荐豆名：</label>
-    <input type="text" id="name" name="name" required><br><br>
-
-    <label for="desc">描述：</label>
-    <textarea id="desc" name="desc" required></textarea><br><br>
-
-    <label for="image_url">图片链接：</label>
-    <input type="text" id="image_url" name="image_url" required><br><br>
-
-    <label for="buy_link">购买链接：</label>
-    <input type="text" id="buy_link" name="buy_link" required><br><br>
-
-    <button type="submit">提交更新</button>
+    <button type="submit">添加选项</button>
   </form>
+
+  <h3>删除选项</h3>
+  <form id="delete-option-form">
+    <label for="delete_option_id">选项ID：</label>
+    <input type="text" id="delete_option_id" name="delete_option_id" required><br><br>
+    <button type="submit">删除选项</button>
+  </form>
+
+  <h3>现有选项</h3>
+  <ul id="option-list"></ul>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
     // Supabase 配置
-    const supabaseUrl = 'https://ghwrvkxcoibhixvcprom.supabase.co';  // 替换为你的 Supabase URL
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdod3J2a3hjb2liaGl4dmNwcm9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MzU3OTEsImV4cCI6MjA2NjMxMTc5MX0.mWy8Rn6scdI1XuwNhxarBLT8JwNcaix0FLJdaBO1La4';  // 替换为你的 anon API 密钥
+    const supabaseUrl = 'https://ghwrvkxcoibhixvcprom.supabase.co';  // 替换为您的 Supabase URL
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdod3J2a3hjb2liaGl4dmNwcm9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MzU3OTEsImV4cCI6MjA2NjMxMTc5MX0.mWy8Rn6scdI1XuwNhxarBLT8JwNcaix0FLJdaBO1La4';  // 替换为您的 anon API 密钥
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // 表单提交
-    document.getElementById('admin-form').addEventListener('submit', async (e) => {
+    // 显示现有选项
+    async function loadOptions() {
+      const { data, error } = await supabase
+        .from('options')
+        .select('*');
+
+      if (error) {
+        console.error('加载选项失败', error);
+      } else {
+        const optionList = document.getElementById('option-list');
+        optionList.innerHTML = '';
+        data.forEach(option => {
+          const li = document.createElement('li');
+          li.textContent = `ID: ${option.id}, 类型: ${option.type}, 值: ${option.value}`;
+          optionList.appendChild(li);
+        }
+      }
+    }
+
+    // 添加新选项
+    document.getElementById('admin-options-form').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const formData = new FormData(e.target);
       const data = {
-        origin: formData.get('origin'),
-        bean: formData.get('bean'),
-        roast: formData.get('roast'),
-        method: formData.get('method'),
-        name: formData.get('name'),
-        desc: formData.get('desc'),
-        image_url: formData.get('image_url'),
-        buy_link: formData.get('buy_link'),
+        type: formData.get('option_type'),
+        value: formData.get('option_value'),
       };
 
-      // 提交数据到 Supabase
       const { data: insertedData, error } = await supabase
-        .from('recommendations')
+        .from('options')
         .insert([data]);
 
       if (error) {
-        console.error('Error inserting data:', error);
+        console.error('插入数据失败', error);
         alert('提交失败');
       } else {
-        alert('数据提交成功');
+        alert('选项添加成功');
+        loadOptions();  // 刷新选项列表
       }
     });
+
+    // 删除选项
+    document.getElementById('delete-option-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const optionId = formData.get('delete_option_id');
+
+      const { data, error } = await supabase
+        .from('options')
+        .delete()
+        .eq('id', optionId);
+
+      if (error) {
+        console.error('删除选项失败', error);
+        alert('删除失败');
+      } else {
+        alert('选项删除成功');
+        loadOptions();  // 刷新选项列表
+      }
+    });
+
+    // 加载现有选项
+    loadOptions();
   </script>
 </body>
 </html>
